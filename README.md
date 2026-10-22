@@ -1,6 +1,6 @@
-# cment: concrete batch plant SCADA (demo)
+# cment: batch plant SCADA (demo)
 
-A browser-based SCADA for a concrete batch plant controlled by a Siemens S7-1500 (CPU 1511-1 PN).
+A browser-based SCADA for a batch plant controlled by a Siemens S7-1500 (CPU 1511-1 PN).
 It reads the PLC directly over S7 protocol, so no Modbus map is needed. It runs on **Windows** and
 **macOS**. A built-in **PLC simulator** lets you try every screen without a plant.
 
