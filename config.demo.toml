@@ -1,0 +1,31 @@
+# Demo settings: the built-in simulator instead of a real PLC. Used by demo.bat / demo.command.
+# Port 1102 instead of the S7 standard 102, so the simulator needs no admin rights (macOS).
+
+[plc]
+host = "127.0.0.1"
+rack = 0
+slot = 1
+port = 1102
+poll_ms = 1000
+
+[web]
+host = "0.0.0.0"
+port = 8080
+
+[database]
+path = "data/demo.db"   # kept apart from the real data/scada.db
+
+[history]
+sample_s = 5
+keep_days = 30
+
+[control]
+enabled = true          # safe here: it only drives the simulator
+min_quantity = 0.25
+max_quantity = 12.0
+
+[stages]
+0 = "Idle"
+1 = "Klaxon"
+2 = "Batching"
+3 = "Discharge"

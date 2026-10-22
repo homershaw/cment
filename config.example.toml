@@ -1,0 +1,34 @@
+# Cement batch plant SCADA settings. Copy to config.toml and edit.
+
+[plc]
+host = "127.0.0.1"   # S7-1500 IP address (127.0.0.1 = the simulator: python -m sim)
+rack = 0
+slot = 1             # S7-1500 CPU: rack 0, slot 1
+port = 102
+poll_ms = 1000
+
+[web]
+host = "0.0.0.0"     # listen on all interfaces so other PCs on the plant network can connect
+port = 8080
+
+[database]
+path = "data/scada.db"
+
+[history]
+sample_s = 5         # how often trend tags are stored
+keep_days = 180
+
+[control]
+# Batch control writes to the PLC. Keep false on a real plant until the start, pause,
+# resume and abort behaviour has been checked against the PLC program with its author.
+enabled = false
+min_quantity = 0.25  # m3
+max_quantity = 12.0  # m3
+
+# "Proccess stage" (DB30.DBW14) values. Only 0 = idle is known from the program;
+# the others are the simulator's and must be confirmed on the real PLC.
+[stages]
+0 = "Idle"
+1 = "Klaxon"
+2 = "Batching"
+3 = "Discharge"

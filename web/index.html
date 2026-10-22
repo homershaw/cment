@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cment · Batch Plant SCADA</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <span class="brand">cment <span class="muted" style="font-weight:500">Batch Plant SCADA</span></span>
+  <nav>
+    <a href="#overview">Overview</a>
+    <a href="#control">Batch Control</a>
+    <a href="#alarms">Alarms</a>
+    <a href="#trends">Trends</a>
+    <a href="#batches">Batches</a>
+    <a href="#events">Events</a>
+    <a href="#tags">Tags</a>
+  </nav>
+  <span class="spacer"></span>
+  <span class="pill" id="plcPill"><span class="dot"></span><span>PLC</span></span>
+  <span class="pill" id="stagePill"><span class="dot"></span><span>Stage</span></span>
+  <a class="pill" id="alarmPill" href="#alarms" style="text-decoration:none;color:inherit"><span class="dot"></span><span>0 alarms</span></a>
+  <span class="pill" id="clock"></span>
+  <button id="themeBtn" title="Toggle light/dark">◐</button>
+  <button id="userBtn">Log in</button>
+</header>
+<div class="banner" id="banner"><span class="icon">⚠</span><span id="bannerText"></span><span class="spacer" style="flex:1"></span><button id="bannerAck">Acknowledge</button></div>
+
+<main>
+  <!-- Overview -->
+  <section class="page" id="page-overview">
+    <div class="grid overview-top">
+      <div class="card">
+        <h2>Batch</h2>
+        <div class="stats">
+          <div class="stat"><span class="v" id="ovStage">-</span><span class="l">Process stage</span></div>
+          <div class="stat"><span class="v" id="ovQty">-</span><span class="l">Batch quantity</span></div>
+          <div class="stat"><span class="v" id="ovElapsed">-</span><span class="l">Elapsed</span></div>
+          <div class="stat"><span class="v" id="ovBatchNo">-</span><span class="l">Batch record</span></div>
+        </div>
+        <div class="chips" id="ovFlags" style="margin-top:10px"></div>
+      </div>
+      <div class="card">
+        <h2>Equipment</h2>
+        <div class="equip" id="ovEquip"></div>
+      </div>
+    </div>
+    <div class="grid plant" style="margin-top:12px" id="ovVessels"></div>
+    <div class="card" style="margin-top:12px">
+      <h2>Main conveyor</h2>
+      <div class="conveyor" id="ovConveyor" role="img" aria-label="Main conveyor"></div>
+    </div>
+    <div class="grid plant" style="margin-top:12px" id="ovAdmix"></div>
+  </section>
+
+  <!-- Batch control -->
+  <section class="page" id="page-control">
+    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items:start">
+      <div class="card">
+        <h2>Batch control</h2>
+        <div id="ctlNotice"></div>
+        <div class="row" style="margin:12px 0">
+          <label for="ctlQty">Quantity (m³)</label>
+          <input id="ctlQty" class="qty" type="number" step="0.25" min="0.25" value="1.00">
+        </div>
+        <div class="row control-buttons">
+          <button class="primary" id="btnStart">Start</button>
+          <button id="btnPause">Pause</button>
+          <button id="btnResume">Resume</button>
+          <button class="danger" id="btnAbort">Abort</button>
+        </div>
+        <p class="small muted" id="ctlHelp"></p>
+      </div>
+      <div class="card">
+        <h2>Interlocks</h2>
+        <div class="chips" id="ctlInterlocks" style="flex-direction:column;align-items:flex-start"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h2>Current batch</h2>
+      <div class="scroll"><table id="ctlMaterials"></table></div>
+    </div>
+  </section>
+
+  <!-- Alarms -->
+  <section class="page" id="page-alarms">
+    <div class="card">
+      <div class="row" style="justify-content:space-between"><h2>Active alarms</h2><button id="ackAll">Acknowledge all</button></div>
+      <div class="scroll"><table id="alarmActive"></table></div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="row" style="justify-content:space-between">
+        <h2>Alarm history</h2>
+        <select id="alarmHours"><option value="24">Last 24 h</option><option value="168">Last 7 days</option><option value="720">Last 30 days</option></select>
+      </div>
+      <div class="scroll"><table id="alarmHistory"></table></div>
+    </div>
+  </section>
+
+  <!-- Trends -->
+  <section class="page" id="page-trends">
+    <div class="grid trend-layout">
+      <div class="card tag-picker" id="trendPicker"></div>
+      <div>
+        <div class="row" style="margin-bottom:10px">
+          <div class="seg" id="trendRange">
+            <button data-s="900">15 min</button><button data-s="3600" class="on">1 h</button>
+            <button data-s="28800">8 h</button><button data-s="86400">24 h</button><button data-s="604800">7 d</button>
+          </div>
+          <label class="small"><input type="checkbox" id="trendLive" checked> Live</label>
+          <button id="trendTable">Table view</button>
+        </div>
+        <div id="trendCharts" class="grid"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Batches -->
+  <section class="page" id="page-batches">
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <h2>Batch history</h2>
+        <div class="row">
+          <select id="batchDays"><option value="1">Today</option><option value="7" selected>Last 7 days</option><option value="30">Last 30 days</option></select>
+          <a id="batchCsv" href="/api/batches.csv?days=7"><button>Export CSV</button></a>
+        </div>
+      </div>
+      <div class="scroll"><table id="batchTable"></table></div>
+    </div>
+    <div class="card" style="margin-top:12px" id="batchDetailCard" hidden>
+      <h2 id="batchDetailTitle">Batch</h2>
+      <div class="scroll"><table id="batchDetail"></table></div>
+    </div>
+  </section>
+
+  <!-- Events -->
+  <section class="page" id="page-events">
+    <div class="card"><h2>Event and audit log (72 h)</h2><div class="scroll"><table id="eventTable"></table></div></div>
+  </section>
+
+  <!-- Tags -->
+  <section class="page" id="page-tags">
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <h2>PLC tags</h2>
+        <div class="row"><span class="small muted" id="tagInfo"></span><input id="tagFilter" placeholder="Filter"></div>
+      </div>
+      <div class="scroll"><table id="tagTable"></table></div>
+    </div>
+  </section>
+</main>
+
+<dialog id="loginDlg">
+  <form method="dialog" id="loginForm">
+    <h3>Log in</h3>
+    <label>Username<input name="username" autocomplete="username" required></label>
+    <label>Password<input name="password" type="password" autocomplete="current-password" required></label>
+    <div class="notice error" id="loginErr" hidden></div>
+    <div class="row"><button class="primary" type="submit">Log in</button><button type="button" id="loginCancel">Cancel</button></div>
+  </form>
+</dialog>
+<dialog id="confirmDlg">
+  <form method="dialog">
+    <h3 id="confirmTitle">Confirm</h3>
+    <p id="confirmText"></p>
+    <div class="row"><button class="primary" value="yes" id="confirmYes">Confirm</button><button value="no">Cancel</button></div>
+  </form>
+</dialog>
+<script src="/static/app.js"></script>
+</body>
+</html>
