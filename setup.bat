@@ -3,7 +3,11 @@ rem cment setup: creates .venv and installs the Python packages. Safe to run aga
 cd /d "%~dp0"
 
 set PY=
-where py >nul 2>nul && set PY=py -3
+rem Prefer a released Python: a pre-release (e.g. 3.15) has no ready-built packages yet.
+where py >nul 2>nul && (
+  for %%V in (3.13 3.12 3.11) do if not defined PY py -%%V -c "" >nul 2>nul && set PY=py -%%V
+  if not defined PY set PY=py -3
+)
 if not defined PY where python >nul 2>nul && set PY=python
 if not defined PY (
   echo Python 3.11 or newer is not installed.
