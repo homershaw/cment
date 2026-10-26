@@ -19,6 +19,13 @@ if not defined PY (
   pause & exit /b 1
 )
 
+rem Rebuild .venv if its Python was removed or it was made with a pre-release Python.
+if exist .venv\Scripts\python.exe .venv\Scripts\python.exe -c "import sys; sys.exit(0 if sys.version_info[:2] < (3, 15) else 1)" >nul 2>nul || (
+  if exist .venv (
+    echo Rebuilding the Python environment...
+    rmdir /s /q .venv
+  )
+)
 if not exist .venv\Scripts\python.exe (
   echo Creating the Python environment...
   %PY% -m venv .venv || (pause & exit /b 1)

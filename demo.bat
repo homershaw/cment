@@ -1,7 +1,7 @@
 @echo off
 rem cment demo: starts the simulated PLC and the SCADA, then opens the browser.
 cd /d "%~dp0"
-if not exist .venv\Scripts\python.exe call setup.bat || exit /b 1
+.venv\Scripts\python.exe -c "" >nul 2>nul || call "%~dp0setup.bat" || exit /b 1
 
 .venv\Scripts\python.exe -m scada --config config.demo.toml adduser demo --role operator --password demo123 >nul
 start "cment simulator - close to stop" .venv\Scripts\python.exe -m sim --port 1102 --auto 30 --faults
