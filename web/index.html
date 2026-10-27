@@ -7,6 +7,9 @@
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+<!-- Shown only when this file is opened directly: style.css (served by the SCADA) hides it. -->
+<p id="fileNotice">This is the cment SCADA screen. It works only when served by the SCADA:
+  run demo.bat or run.bat, then browse to http://localhost:8080</p>
 <header>
   <span class="brand">cment <span class="muted" style="font-weight:500">Batch Plant SCADA</span></span>
   <nav>
@@ -152,15 +155,8 @@
   </section>
 </main>
 
-<dialog id="loginDlg">
-  <form method="dialog" id="loginForm">
-    <h3>Log in</h3>
-    <label>Username<input name="username" autocomplete="username" required></label>
-    <label>Password<input name="password" type="password" autocomplete="current-password" required></label>
-    <div class="notice error" id="loginErr" hidden></div>
-    <div class="row"><button class="primary" type="submit">Log in</button><button type="button" id="loginCancel">Cancel</button></div>
-  </form>
-</dialog>
+<!-- The login dialog is built by app.js: an HTML file with a password form, opened on its own,
+     looks like phishing to antivirus heuristics. -->
 <dialog id="confirmDlg">
   <form method="dialog">
     <h3 id="confirmTitle">Confirm</h3>

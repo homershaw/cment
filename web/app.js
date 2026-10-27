@@ -380,7 +380,30 @@ function renderTags() {
 }
 
 // ---------- login / theme ----------
-function openLogin() { $("#loginErr").hidden = true; $("#loginForm").reset(); $("#loginDlg").showModal(); }
+// Built here, not in index.html: a downloaded HTML file with a password form looks like phishing
+// to antivirus heuristics (Defender flagged it as Trojan:Script/Wacatac.H!ml).
+function loginDialog() {
+  let dlg = $("#loginDlg");
+  if (dlg) return dlg;
+  const el = (tag, props = {}, ...kids) => { const e = Object.assign(document.createElement(tag), props); e.append(...kids); return e; };
+  const field = (label, name, type, autocomplete) => el("label", {}, label, el("input", { name, type, autocomplete, required: true }));
+  const err = el("div", { className: "notice error", id: "loginErr", hidden: true });
+  const cancel = el("button", { type: "button", textContent: "Cancel" });
+  const form = el("form", { method: "dialog" }, el("h3", { textContent: "Log in" }),
+    field("Username", "username", "text", "username"), field("Password", "password", "password", "current-password"), err,
+    el("div", { className: "row" }, el("button", { className: "primary", type: "submit", textContent: "Log in" }), cancel));
+  dlg = el("dialog", { id: "loginDlg" }, form);
+  cancel.onclick = () => dlg.close();
+  form.onsubmit = async ev => {
+    ev.preventDefault();
+    const fd = new FormData(form);
+    try { await api("/api/login", { body: { username: fd.get("username"), password: fd.get("password") } }); dlg.close(); refreshUser(); }
+    catch (e) { err.textContent = e.message; err.hidden = false; }
+  };
+  document.body.append(dlg);
+  return dlg;
+}
+function openLogin() { const dlg = loginDialog(); $("#loginErr").hidden = true; dlg.querySelector("form").reset(); dlg.showModal(); }
 async function refreshUser() {
   const me = await api("/api/me");
   S.user = me.username ? me : null;
@@ -391,13 +414,6 @@ async function refreshUser() {
 function setup() {
   window.addEventListener("hashchange", route);
   $("#userBtn").onclick = async () => { if (S.user) { await api("/api/logout", { body: {} }); refreshUser(); } else openLogin(); };
-  $("#loginCancel").onclick = () => $("#loginDlg").close();
-  $("#loginForm").onsubmit = async ev => {
-    ev.preventDefault();
-    const fd = new FormData(ev.target);
-    try { await api("/api/login", { body: { username: fd.get("username"), password: fd.get("password") } }); $("#loginDlg").close(); refreshUser(); }
-    catch (e) { $("#loginErr").textContent = e.message; $("#loginErr").hidden = false; }
-  };
   $("#themeBtn").onclick = () => {
     const dark = matchMedia("(prefers-color-scheme: dark)").matches;
     const cur = document.documentElement.dataset.theme || (dark ? "dark" : "light");
